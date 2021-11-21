@@ -12,6 +12,8 @@ const App = () => {
    * All state property to store all waves
    */
   const [allWaves, setAllWaves] = useState([]);
+  //input value
+  const [userInput, setUserInput] = useState("");
   //wave counts
   const [waveCount, setWaveCount] = useState(0);
   //my rinkeby contact address
@@ -88,9 +90,10 @@ const App = () => {
 
         /*
          * Execute the actual wave from your smart contract
+        this is how we get the message
          */
-        // const waveTxn = await wavePortalContract.wave();
-        const waveTxn = await wavePortalContract.wave("this is a message");
+        const waveTxn = await wavePortalContract.wave(userInput).toString();
+        // const waveTxn = await wavePortalContract.wave("this is a message");
         console.log("Mining...", waveTxn.hash);
 
         await waveTxn.wait();
@@ -152,6 +155,11 @@ const App = () => {
     }
   };
 
+  const handleInput = (e) => {
+    setUserInput(e.target.value);
+    // console.log(e.target.value);
+  };
+
   const waveNumbers = waveCount;
   console.log(waveNumbers);
   useEffect(() => {
@@ -166,7 +174,10 @@ const App = () => {
         <div className="bio">
           My name's Murat, and this is my first web3 app!
         </div>
-
+        <div id="inputFlex">
+          <p> Enter your message here!</p>
+          <input type="text" name="name" required onChange={handleInput} />
+        </div>
         <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
@@ -186,9 +197,10 @@ const App = () => {
             <div
               key={index}
               style={{
-                backgroundColor: "OldLace",
+                backgroundColor: "black",
                 marginTop: "16px",
                 padding: "8px",
+                color: "white",
               }}
             >
               <div>Address: {wave.address}</div>
