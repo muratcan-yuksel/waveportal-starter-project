@@ -196,7 +196,28 @@ const App = () => {
         <div className="header">👋 Hey there!</div>
 
         <div className="bio">
-          My name's Murat, and this is my first web3 app!
+          <p> My name's Murat, and this is my first web3 app!</p>
+          <p>
+            Find me on{" "}
+            <a
+              href="https://www.linkedin.com/in/murat-can-y%C3%BCksel-2b1347119/"
+              target="_blank"
+            >
+              LinkedIn
+            </a>
+          </p>
+          <p>
+            {" "}
+            <a href="https://github.com/muratcan-yuksel" target="_blank">
+              GitHub
+            </a>
+          </p>
+          <p>
+            <a href="https://muratcan-yuksel.github.io/minimal" target="_blank">
+              {" "}
+              My Portfolio
+            </a>
+          </p>
         </div>
         <div id="inputFlex">
           <p> Enter your message here!</p>
