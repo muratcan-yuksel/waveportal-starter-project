@@ -17,7 +17,7 @@ const App = () => {
   //wave counts
   const [waveCount, setWaveCount] = useState(0);
   //my rinkeby contact address
-  const contractAddress = "0xCF9CDD61e3795CbCd4A4EDdbc58C8f1b704C0c06";
+  const contractAddress = "0x90Ca5Bdfb617f18F3F711d251C62746DA46352CF";
 
   const contractABI = abi.abi;
 
@@ -92,7 +92,9 @@ const App = () => {
          * Execute the actual wave from your smart contract
         this is how we get the message
          */
-        const waveTxn = await wavePortalContract.wave(userInput).toString();
+        const waveTxn = await wavePortalContract.wave(userInput, {
+          gasLimit: 300000,
+        });
         // const waveTxn = await wavePortalContract.wave("this is a message");
         console.log("Mining...", waveTxn.hash);
 
@@ -114,8 +116,9 @@ const App = () => {
    * Create a method that gets all waves from your contract
    */
   const getAllWaves = async () => {
+    const { ethereum } = window;
+
     try {
-      const { ethereum } = window;
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
@@ -124,28 +127,16 @@ const App = () => {
           contractABI,
           signer
         );
-
-        /*
-         * Call the getAllWaves method from your Smart Contract
-         */
         const waves = await wavePortalContract.getAllWaves();
 
-        /*
-         * We only need address, timestamp, and message in our UI so let's
-         * pick those out
-         */
-        let wavesCleaned = [];
-        waves.forEach((wave) => {
-          wavesCleaned.push({
+        const wavesCleaned = waves.map((wave) => {
+          return {
             address: wave.waver,
             timestamp: new Date(wave.timestamp * 1000),
             message: wave.message,
-          });
+          };
         });
 
-        /*
-         * Store our data in React State
-         */
         setAllWaves(wavesCleaned);
       } else {
         console.log("Ethereum object doesn't exist!");
@@ -162,8 +153,41 @@ const App = () => {
 
   const waveNumbers = waveCount;
   console.log(waveNumbers);
+  /**
+   * Listen in for emitter events!
+   */
   useEffect(() => {
-    checkIfWalletIsConnected();
+    let wavePortalContract;
+
+    const onNewWave = (from, timestamp, message) => {
+      console.log("NewWave", from, timestamp, message);
+      setAllWaves((prevState) => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      wavePortalContract.on("NewWave", onNewWave);
+    }
+
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", onNewWave);
+      }
+    };
   }, []);
 
   return (
@@ -181,7 +205,6 @@ const App = () => {
         <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
-        <h3>Total waves so far: {waveNumbers} </h3>
 
         {/*
          * If there is no currentAccount render this button
